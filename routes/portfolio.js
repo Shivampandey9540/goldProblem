@@ -6,66 +6,8 @@ const GoldTransaction = require("../models/GoldTransaction");
 const WalletTransaction = require("../models/WalletTransaction");
 
 // Calculate user portfolio
-router.get("/portfolio/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
 
-    // Fetch wallet transaction records for the user
-    const walletTransactions = await WalletTransaction.find({ userId });
-
-    // Calculate net funds added to the user's wallet
-    const netFundAdded = walletTransactions.reduce((acc, cur) => {
-      if (cur.type === "CREDIT") {
-        return acc + cur.amount;
-      } else {
-        return acc - cur.amount;
-      }
-    }, 0);
-
-    // Fetch user details
-    const user = await User.findById(userId);
-
-    // Calculate current fund
-    const currentFund = user.runningBalance.wallet + netFundAdded;
-
-    // Fetch gold transaction records for the user
-    const goldTransactions = await GoldTransaction.find({ userId });
-
-    // Calculate net gold quantity added to or sold from the user's account
-    const netGoldQuantity = goldTransactions.reduce((acc, cur) => {
-      if (cur.type === "CREDIT") {
-        return acc + cur.quantity;
-      } else {
-        return acc - cur.quantity;
-      }
-    }, 0);
-
-    // Calculate current value of gold in the user's account
-    const currentValue =
-      user.runningBalance.goldPrice * user.runningBalance.gold;
-
-    // Calculate net growth or loss
-    const netGrowthOrLoss = currentValue - currentFund;
-
-    // Calculate gain or loss percentage
-    const gainOrLossPercentage = (
-      (netGrowthOrLoss / currentFund) *
-      100
-    ).toFixed(2);
-
-    // Return the response
-    res.json({
-      netFundAdded,
-      currentFund,
-      netGrowthOrLoss,
-      gainOrLossPercentage,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
+// User data Callculation
 router.get("/portfolio", auth, async (req, res) => {
   try {
     const userId = req.user._id;
